@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "bike-rental"
+version = "0.1.0"
+description = ""
+authors = ["natalia dudina"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+django = "^5.0.7"
+psycopg2 = "^2.9.9"
+djangorestframework = "^3.15.2"
+celery = "^5.4.0"
+flake8 = "^7.1.1"
+djangorestframework-simplejwt = "^5.3.1"
+coverage = "^7.6.1"
+drf-yasg = "^1.21.7"
+python-dotenv = "^1.0.1"
+pillow = "^10.4.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
