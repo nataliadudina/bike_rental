@@ -3,19 +3,21 @@ from rest_framework import generics
 from rest_framework.permissions import AllowAny
 
 from users.permissions import IsOwner
-from users.serializers import UserSerializer, UserProfileSerializer
+from users.serializers import UserSerializer
 
 
 class UserApiList(generics.ListAPIView):
-    """ Представление для вывода списка пользователей """
+    """ Представление для вывода списка пользователей. """
+
     serializer_class = UserSerializer
     queryset = get_user_model().objects.all()
 
 
 class UserRegistrationAPIView(generics.CreateAPIView):
-    """ Представление для создания / регистрации пользователя """
+    """ Представление для создания / регистрации пользователя. """
+
     queryset = get_user_model().objects.all()
-    serializer_class = UserProfileSerializer
+    serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
@@ -27,7 +29,8 @@ class UserRegistrationAPIView(generics.CreateAPIView):
 
 
 class UserApiDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """ Представление для чтения, обновления удаления записи о пользователе в бд """
+    """ Представление для чтения, обновления удаления записи о пользователе в бд. """
+
     serializer_class = UserSerializer
     queryset = get_user_model().objects.all()
     permission_classes = [IsOwner]

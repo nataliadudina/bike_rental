@@ -8,10 +8,10 @@ from users.views import UserApiList, UserApiDetailView, UserRegistrationAPIView
 app_name = UsersConfig.name
 
 urlpatterns = [
-    path('users/', UserApiList.as_view(), name='user-get-post'),
+    path('users/', UserApiList.as_view(), name='user-get'),
     path('users/<int:pk>/', UserApiDetailView.as_view(), name='user-detail'),
     # авторизация пользователя
-    path('register/', UserRegistrationAPIView.as_view(), name='user-post'),
+    path('register/', UserRegistrationAPIView.as_view(), name='user-register'),
 
     # авторизация пользователей
     path('login/', TokenObtainPairView.as_view(permission_classes=(AllowAny,)), name='token_obtain_pair'),

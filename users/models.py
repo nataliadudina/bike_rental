@@ -3,9 +3,8 @@ from django.db import models
 
 
 class User(AbstractUser):
-    """
-    Custom User model that extends Django's built-in AbstractUser model.
-    """
+    """ Кастомная модель пользователя, расширяющая абстрактный класс пользователя. """
+
     username = None
     email = models.EmailField(unique=True, verbose_name='Email')
     first_name = models.CharField(max_length=50, verbose_name='First Name')
