@@ -147,7 +147,7 @@ REST_FRAMEWORK = {
     ),
     # настройки доступа
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ]
 }
 # Настройки срока действия токенов

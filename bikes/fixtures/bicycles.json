@@ -1,0 +1,87 @@
+[
+    {
+        "model": "bikes.bicycle",
+        "pk": 1,
+        "fields": {
+            "brand": "Specialized",
+            "condition": "E",
+            "type": "A",
+            "gear_count": 18,
+            "frame_type": "R",
+            "wheel_size": 26.5,
+            "colour": "Black",
+            "image": "",
+            "rental_cost_hour": 10.00,
+            "rental_cost_day": 60.00,
+            "rented": false
+        }
+    },
+    {
+        "model": "bikes.bicycle",
+        "pk": 2,
+        "fields": {
+            "brand": "Cannondale",
+            "condition": "G",
+            "type": "J",
+            "gear_count": 6,
+            "frame_type": "M",
+            "wheel_size": 26,
+            "colour": "Blue",
+            "image": "",
+            "rental_cost_hour": 8.00,
+            "rental_cost_day": 48.00,
+            "rented": false
+        }
+    },
+    {
+        "model": "bikes.bicycle",
+        "pk": 3,
+        "fields": {
+            "brand": "Trek",
+            "condition": "S",
+            "type": "K",
+            "gear_count": 0,
+            "frame_type": "U",
+            "wheel_size": 20,
+            "colour": "Red",
+            "image": "",
+            "rental_cost_hour": 5.00,
+            "rental_cost_day": 30.00,
+            "rented": false
+        }
+    },
+    {
+        "model": "bikes.bicycle",
+        "pk": 4,
+        "fields": {
+            "brand": "Giant",
+            "condition": "E",
+            "type": "A",
+            "gear_count": 21,
+            "frame_type": "U",
+            "wheel_size": 26,
+            "colour": "Green",
+            "image": "",
+            "rental_cost_hour": 9.00,
+            "rental_cost_day": 54.00,
+            "rented": false
+        }
+    },
+    {
+        "model": "bikes.bicycle",
+        "pk": 5,
+        "fields": {
+            "brand": "Scott",
+            "condition": "G",
+            "type": "J",
+            "gear_count": 7,
+            "frame_type": "T",
+            "wheel_size": 27.5,
+            "colour": "Yellow",
+            "image": "",
+            "rental_cost_hour": 7.00,
+            "rental_cost_day": 42.00,
+            "rented": false
+        }
+    }
+]
