@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from rest_framework import status
 from django.urls import reverse
 from rest_framework.test import APITestCase, APIClient
@@ -54,13 +55,19 @@ class UserTestCase(APITestCase):
 
     def test_user_list_view(self):
         """ Тестирование просмотра списка пользователей. """
+        # Создаем модератора
+        self.moder = get_user_model().objects.create(email='moder@example.com', password='moder_password')
+        moderator_group, _ = Group.objects.get_or_create(name='moderators')
+        self.moder.groups.add(moderator_group)
+
+        self.client.force_authenticate(user=self.moder)
 
         response = self.client.get(reverse('users:user-get'))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Проверка количества пользователей в ответе API
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data), 3)
 
         self.assertEqual(response.data[0]['email'], 'user@example.com')
 
