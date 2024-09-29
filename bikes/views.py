@@ -24,4 +24,4 @@ class AvailableBikesView(generics.ListAPIView):
     """ API эндпоинт для получения списка доступных велосипедов """
 
     serializer_class = BikeSerializer
-    queryset = Bicycle.objects.filter(rented=False)
+    queryset = Bicycle.objects.filter(is_rented=False)

@@ -33,7 +33,7 @@ class Bicycle(models.Model):
     image = models.ImageField(upload_to='bicycles/', null=True, blank=True)
     rental_cost_hour = models.DecimalField(max_digits=5, decimal_places=2)
     rental_cost_day = models.DecimalField(max_digits=5, decimal_places=2)
-    rented = models.BooleanField(default=False)
+    is_rented = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.brand} - {self.type} - {self.frame_type}'

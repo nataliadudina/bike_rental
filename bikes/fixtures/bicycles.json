@@ -13,7 +13,7 @@
             "image": "",
             "rental_cost_hour": 10.00,
             "rental_cost_day": 60.00,
-            "rented": false
+            "is_rented": false
         }
     },
     {
@@ -30,7 +30,7 @@
             "image": "",
             "rental_cost_hour": 8.00,
             "rental_cost_day": 48.00,
-            "rented": false
+            "is_rented": false
         }
     },
     {
@@ -47,7 +47,7 @@
             "image": "",
             "rental_cost_hour": 5.00,
             "rental_cost_day": 30.00,
-            "rented": false
+            "is_rented": false
         }
     },
     {
@@ -64,7 +64,7 @@
             "image": "",
             "rental_cost_hour": 9.00,
             "rental_cost_day": 54.00,
-            "rented": false
+            "is_rented": false
         }
     },
     {
@@ -81,7 +81,7 @@
             "image": "",
             "rental_cost_hour": 7.00,
             "rental_cost_day": 42.00,
-            "rented": false
+            "is_rented": false
         }
     }
 ]
