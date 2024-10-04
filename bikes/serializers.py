@@ -4,8 +4,8 @@ from bikes.models import Bicycle
 
 
 class BikeSerializer(serializers.ModelSerializer):
-    """ Сериалайзер велосипеда """
+    """Сериалайзер велосипеда"""
 
     class Meta:
         model = Bicycle
-        fields = '__all__'
+        fields = "__all__"

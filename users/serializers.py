@@ -3,9 +3,10 @@ from rest_framework import serializers
 
 
 class UserSerializer(serializers.ModelSerializer):
-    """ Сериалайзер пользователя """
+    """Сериалайзер пользователя"""
+
     password = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = get_user_model()
-        fields = '__all__'
+        fields = "__all__"
