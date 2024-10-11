@@ -1,9 +1,13 @@
 from django.contrib.auth import get_user_model
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
+from bikes.models import Bicycle
+from rents.models import Rental
 from users.permissions import IsModerator, IsOwner, IsOwnerOrModerator
-from users.serializers import UserSerializer
+from users.serializers import UserSerializer, BikeRentalHistorySerializer
 
 
 class UserApiList(generics.ListAPIView):
@@ -31,8 +35,8 @@ class UserRegistrationAPIView(generics.CreateAPIView):
 class UserApiDetailView(generics.RetrieveUpdateDestroyAPIView):
     """Представление для чтения, обновления удаления записи о пользователе в бд."""
 
-    serializer_class = UserSerializer
     queryset = get_user_model().objects.all()
+    serializer_class = UserSerializer
 
     def perform_update(self, serializer):
         user = serializer.save()
@@ -51,3 +55,15 @@ class UserApiDetailView(generics.RetrieveUpdateDestroyAPIView):
             permission_classes = (IsAuthenticated, IsOwner)
         self.permission_classes = permission_classes
         return super().get_permissions()
+
+
+class UserRentHistory(APIView):
+    """ Представление для просмотра истории аренды велосипедов пользователя."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        history = Rental.objects.filter(renter=user)
+        serializer = BikeRentalHistorySerializer(history, many=True)
+        return Response(serializer.data)

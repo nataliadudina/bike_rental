@@ -34,7 +34,7 @@ class BikeTestCase(TestCase):
         # Создаем несколько велосипедов
         self.bike1 = baker.make(Bicycle)
         self.bike2 = baker.make(Bicycle)
-        self.bike3 = baker.make(Bicycle, rented=True)
+        self.bike3 = baker.make(Bicycle, is_rented=True)
 
     def test_create_bike(self):
         """Тестирование создания велосипеда."""

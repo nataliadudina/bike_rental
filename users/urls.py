@@ -4,14 +4,15 @@ from rest_framework_simplejwt.views import (TokenObtainPairView,
                                             TokenRefreshView)
 
 from users.apps import UsersConfig
-from users.views import UserApiDetailView, UserApiList, UserRegistrationAPIView
+from users.views import UserApiDetailView, UserApiList, UserRentHistory, UserRegistrationAPIView
 
 app_name = UsersConfig.name
 
 urlpatterns = [
     path("users/", UserApiList.as_view(), name="user-get"),
     path("users/<int:pk>/", UserApiDetailView.as_view(), name="user-detail"),
-    # авторизация пользователя
+    path("history/", UserRentHistory.as_view(), name="user-history"),
+    # регистрация пользователя
     path("register/", UserRegistrationAPIView.as_view(), name="user-register"),
     # авторизация пользователей
     path(

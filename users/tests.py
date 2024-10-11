@@ -133,7 +133,6 @@ class UserRegistrationTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         new_user = get_user_model().objects.get(email=new_user_data["email"])
-        self.assertTrue(new_user.check_password(new_user_data["password"]))
 
         # Проверяем, что пароль хеширован
         self.assertTrue(new_user.check_password(new_user_data["password"]))
