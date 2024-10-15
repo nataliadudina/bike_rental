@@ -152,7 +152,6 @@ class TestReturnView(APITestCase):
     """ Тестовые случаи для API-представлений возврата велосипедов."""
 
     def setUp(self):
-
         self.user1 = baker.make(User)
         self.client.force_authenticate(user=self.user1)
 
@@ -164,21 +163,25 @@ class TestReturnView(APITestCase):
         self.rental = Rental.objects.create(
             rented_bike=self.bike,
             renter=self.user1,
-            start_time=now(),
-            end_time=now() + timedelta(days=1),
+            start_time=now() - timedelta(hours=2),
             status="active",
-            rental_cost=0
         )
 
     def test_return_bike(self):
         """ Тест успешного возврата велосипеда."""
 
-        self.client.force_authenticate(user=self.user1)
+        # Пользователь пытается вернуть свой велосипед
         url = reverse('rents:return-bike', kwargs={'pk': self.rental.pk})
-        data = {'status': 'completed'}
-        response = self.client.patch(url, data=data)
+        self.client.force_authenticate(user=self.user1)
+        response = self.client.patch(url, {'status': 'completed'})
+
+        # Проверяем, что аренда завершилась
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['status'], 'completed')
+
+        # Проверяем, что велосипед стал доступным
+        available_bike = Bicycle.objects.get(pk=self.bike.pk)
+        self.assertFalse(available_bike.is_rented)
 
     def test_not_authorized_to_return(self):
         """ Тест попытки возврата велосипеда пользователем без прав."""

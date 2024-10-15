@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     "rest_framework",
     "rest_framework_simplejwt",
+    'django_celery_beat',
     "model_bakery",
     "users",
     "bikes",
@@ -172,3 +173,11 @@ LOGGING = {
         },
     },
 }
+
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_STORE_ERRORS_EVEN_IF_IGNORED = True
+CELERY_TASK_ALWAYS_EAGER = True

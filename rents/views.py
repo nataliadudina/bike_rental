@@ -1,6 +1,7 @@
-import logging
+from decimal import Decimal
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
 from rest_framework import generics, serializers, status
 from rest_framework.permissions import IsAuthenticated
@@ -9,10 +10,8 @@ from rest_framework.response import Response
 from bikes.models import Bicycle
 from rents.models import Rental
 from rents.serializers import RentSerializer
-from rents.utils import calculate_rental_cost
+from rents.tasks import get_rental_cost
 from users.permissions import IsModerator
-
-logger = logging.getLogger(__name__)
 
 
 class RentApiView(generics.CreateAPIView):
@@ -61,7 +60,20 @@ class RentRetrieveApiView(generics.RetrieveAPIView):
 
     serializer_class = RentSerializer
     queryset = Rental.objects.all()
-    permission_classes = (IsAuthenticated, IsModerator)
+
+    def get_object(self, queryset=None):
+        rental_id = self.kwargs.get('pk')
+        return get_object_or_404(Rental, pk=rental_id)
+
+    def retrieve(self, request, *args, **kwargs):
+        """ Просмотр записи об аренде доступен только арендатору, модератору и суперпользователю."""
+
+        rental = self.get_object()
+        if rental.renter == request.user or request.user.is_staff or request.user.is_superuser:
+            result = super().retrieve(request, *args, **kwargs)
+        else:
+            return Response({"detail": "You do not have permission to view this rental"}, status=403)
+        return result
 
 
 class ReturnView(generics.UpdateAPIView):
@@ -99,24 +111,30 @@ class ReturnView(generics.UpdateAPIView):
             # Обновление статуса аренды
             instance.status = "completed"
             instance.end_time = now()
-            instance.rental_cost = calculate_rental_cost(instance)
             instance.save()
+
+            # Фоновая задача расчёта платы за аренду
+            payment_task = get_rental_cost.delay(instance.pk)
+            payment_task.get()
+
+            result = payment_task.result
+
+            if result['status'] == 'success':
+                rental_cost = Decimal(result['rental_cost'])
+                instance.rental_cost = rental_cost
+                instance.save()
+            else:
+                raise ValueError(f"Ошибка при расчете стоимости аренды: {result}")
 
             # Изменение статуса велосипеда
             bike_id = instance.rented_bike.id  # Получаем ID велосипеда
             bike = Bicycle.objects.get(id=bike_id)
             bike.is_rented = False
             bike.save()
-
-            logger.info(
-                f"Successful bike return: Rental ID={instance.id}, Bike ID={bike_id}"
-            )
-
             return Response(
                 self.serializer_class(instance).data, status=status.HTTP_200_OK
             )
-        except Exception as e:
-            logger.error(f"Error during bike return: {str(e)}")
+        except Exception:
             return Response(
                 {"error": "An error occurred during bike return"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
