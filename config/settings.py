@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'drf_spectacular',
     'django_filters',
     "rest_framework",
     "rest_framework_simplejwt",
@@ -155,11 +156,24 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
     ],
+    # настройки документации
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
+
 # Настройки срока действия токенов
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}
+
+# настройки документации
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Bicycle Rental Service',
+    'DESCRIPTION': 'Comprehensive bicycle rental service platform with user management, inventory control, and booking system.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SERVE_PUBLIC': False,  # Показать детализированные ошибки
+    'ENABLE_WARNINGS': True,  # Включить предупреждения об отсутствии описаний
 }
 
 LOGGING = {

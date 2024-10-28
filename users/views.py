@@ -68,16 +68,19 @@ class UserRentHistory(APIView):
     """ Представление для просмотра истории аренды велосипедов пользователя."""
 
     permission_classes = [IsAuthenticated]
+    serializer_class = BikeRentalHistorySerializer
 
     def get(self, request):
         history = Rental.objects.filter(renter=self.request.user)
-        serializer = BikeRentalHistorySerializer(history, many=True)
+        serializer = self.serializer_class(history, many=True)
         return Response(serializer.data)
 
 
 class CreatePaymentView(APIView):
     """Представление для создания ссылки на оплату."""
+
     permission_classes = [IsAuthenticated]
+    serializer_class = PaymentSerializer
 
     def post(self, request):
         rental_id = request.data.get('rental_id')
@@ -132,6 +135,8 @@ class PaymentStatusView(APIView):
         Переход на страницу статуса платежа переходит автоматически после успешной оплаты.
     """
 
+    serializer_class = PaymentSerializer
+
     def get(self, request, *args, **kwargs):
         # Получаем ID сессии из параметров запроса
         session_id = request.GET.get('session_id')
@@ -170,8 +175,7 @@ class PaymentStatusView(APIView):
 
 class PaymentListView(generics.ListAPIView):
     serializer_class = PaymentSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter]  # Бэкенд для обработки фильтра
-    filterset_fields = ('bike', 'method')  # Набор полей для фильтрации
+    # filter_backends = [DjangoFilterBackend, OrderingFilter]  # Бэкенд для обработки фильтра
     ordering_fields = ('date',)
     queryset = Payment.objects.all()
     pagination_class = PaymentsPaginator
