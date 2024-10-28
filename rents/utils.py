@@ -5,9 +5,9 @@ from math import ceil
 def calculate_rental_cost(instance):
     """Функция для расчёта стоимости аренды велосипеда."""
 
-    if instance.status == "completed":
+    if instance.status == "pending":
         duration_sec = (
-            instance.end_time - instance.start_time
+                instance.end_time - instance.start_time
         ).total_seconds()  # время аренды в секундах
         duration_hours = ceil(duration_sec / 3600)  # время аренды в часах
 
@@ -15,11 +15,11 @@ def calculate_rental_cost(instance):
         if duration_hours > 24:
             days = duration_hours // 24  # кол-во суток
             cost_days = (
-                days * instance.rented_bike.rental_cost_day
+                    days * instance.rented_bike.rental_cost_day
             )  # стоимость за все дни аренды
             cost_hours = (
-                duration_hours % 24
-            ) * instance.rented_bike.rental_cost_hour  # стоимость за все часы аренды
+                                 duration_hours % 24
+                         ) * instance.rented_bike.rental_cost_hour  # стоимость за все часы аренды
             total_cost = Decimal(cost_days) + Decimal(cost_hours)  # общая стоимость за дни и часы
 
         # расчёт стоимости почасовой аренды

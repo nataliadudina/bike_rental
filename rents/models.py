@@ -11,7 +11,6 @@ class Rental(models.Model):
         ("pending", "Pending"),
         ("active", "Active"),
         ("completed", "Completed"),
-        ("cancelled", "Cancelled"),
     ]
 
     start_time = models.DateTimeField(auto_now_add=True)
@@ -26,7 +25,7 @@ class Rental(models.Model):
         max_length=9, choices=RENT_STATUS_CHOICES, default="pending"
     )
     rental_cost = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
+        max_digits=10, decimal_places=2, null=True, blank=True, default=0
     )
 
     def __str__(self):

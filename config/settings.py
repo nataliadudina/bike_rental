@@ -32,6 +32,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
 
+# Stripe keys
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -41,11 +44,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "drf_yasg",
+    'django_filters',
     "rest_framework",
     "rest_framework_simplejwt",
     'django_celery_beat',
     "model_bakery",
+
     "users",
     "bikes",
     "rents",
@@ -179,5 +183,5 @@ CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
-CELERY_STORE_ERRORS_EVEN_IF_IGNORED = True
+CELERY_STORE_ERRORS_EVEN_IF_IGNORED = False
 CELERY_TASK_ALWAYS_EAGER = True

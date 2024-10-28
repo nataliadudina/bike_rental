@@ -101,15 +101,15 @@ class ReturnView(generics.UpdateAPIView):
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
-            # Проверка, что аренда ещё не завершена
-            if instance.status == "completed":
+            # Проверка, что аренда ещё активна
+            if instance.status != "active":
                 return Response(
                     {"error": "Rental is already completed."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
             # Обновление статуса аренды
-            instance.status = "completed"
+            instance.status = "pending"
             instance.end_time = now()
             instance.save()
 
@@ -119,7 +119,7 @@ class ReturnView(generics.UpdateAPIView):
 
             result = payment_task.result
 
-            if result['status'] == 'success':
+            if result and result.get('status') == 'success':
                 rental_cost = Decimal(result['rental_cost'])
                 instance.rental_cost = rental_cost
                 instance.save()
@@ -134,7 +134,8 @@ class ReturnView(generics.UpdateAPIView):
             return Response(
                 self.serializer_class(instance).data, status=status.HTTP_200_OK
             )
-        except Exception:
+        except Exception as e:
+            print(f"Error occurred during bike return: {str(e)}")
             return Response(
                 {"error": "An error occurred during bike return"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

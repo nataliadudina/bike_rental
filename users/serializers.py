@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from rents.models import Rental
+from users.models import Payment
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -25,3 +26,12 @@ class BikeRentalHistorySerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation['rented_bike'] = str(instance.rented_bike) if instance.rented_bike else None
         return representation
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+    """Сериалайзер для просмотра истории оплаты аренды велосипедов. """
+    bike = serializers.CharField(source='rental.rented_bike')
+
+    class Meta:
+        model = Payment
+        fields = ('id', 'bike', 'date', 'amount', 'method', 'status')
