@@ -10,6 +10,7 @@ from stripe import StripeError
 
 from rents.models import Rental
 from rents.paginators import PaymentsPaginator
+from users.filters import PaymentFilterSet
 from users.models import Payment
 from users.permissions import IsModerator, IsOwner, IsOwnerOrModerator
 from users.serializers import UserSerializer, BikeRentalHistorySerializer, PaymentSerializer
@@ -175,9 +176,8 @@ class PaymentStatusView(APIView):
 
 class PaymentListView(generics.ListAPIView):
     serializer_class = PaymentSerializer
-    # filter_backends = [DjangoFilterBackend, OrderingFilter]  # Бэкенд для обработки фильтра
-    ordering_fields = ('date',)
-    queryset = Payment.objects.all()
+    filter_backends = [DjangoFilterBackend]  # Бэкенд для обработки фильтра
+    filterset_class = PaymentFilterSet
     pagination_class = PaymentsPaginator
     permission_classes = [IsAuthenticated | IsModerator]
 
@@ -187,12 +187,3 @@ class PaymentListView(generics.ListAPIView):
             return Payment.objects.filter(user=self.request.user)
         # Для модератора показывает все
         return Payment.objects.all()
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        paginator = self.pagination_class()
-        paginated_queryset = paginator.paginate_queryset(queryset, request)
-        serializer = self.get_serializer(paginated_queryset, many=True)
-        if not paginated_queryset:
-            return Response({'message': 'No payments to display.'}, status=200)
-        return paginator.get_paginated_response(serializer.data)

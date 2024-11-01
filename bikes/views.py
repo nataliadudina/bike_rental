@@ -1,6 +1,8 @@
 from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
+from django_filters import rest_framework as filters
 
+from bikes.filters import BikeFilterSet
 from bikes.models import Bicycle
 from bikes.serializers import BikeSerializer
 from users.permissions import IsModerator
@@ -21,7 +23,9 @@ class BikeViewSet(viewsets.ModelViewSet):
 
 
 class AvailableBikesView(generics.ListAPIView):
-    """API эндпоинт для получения списка доступных велосипедов"""
+    """API эндпоинт для получения списка доступных для аренды велосипедов"""
 
     serializer_class = BikeSerializer
     queryset = Bicycle.objects.filter(is_rented=False)
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = BikeFilterSet
