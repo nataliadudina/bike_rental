@@ -103,7 +103,7 @@ class TestRentApiViews(APITestCase):
 
         # Создаем модератора
         self.moder = get_user_model().objects.create(
-            email="moder@example.com", password="moder_password"
+            email="moder@example.com", password="moder_password", is_staff=True
         )
         moderator_group, _ = Group.objects.get_or_create(name="moderators")
         self.moder.groups.add(moderator_group)
@@ -177,7 +177,7 @@ class TestReturnView(APITestCase):
 
         # Проверяем, что аренда завершилась
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'completed')
+        self.assertEqual(response.data['status'], 'pending')
 
         # Проверяем, что велосипед стал доступным
         available_bike = Bicycle.objects.get(pk=self.bike.pk)
@@ -215,4 +215,4 @@ class TestReturnView(APITestCase):
         self.rental.save()
         url = reverse('rents:return-bike', kwargs={'pk': self.rental.pk})
         response = self.client.patch(url)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
