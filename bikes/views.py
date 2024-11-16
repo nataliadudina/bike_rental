@@ -1,6 +1,6 @@
+from django_filters import rest_framework as filters
 from rest_framework import generics, viewsets
 from rest_framework.permissions import IsAuthenticated
-from django_filters import rest_framework as filters
 
 from bikes.filters import BikeFilterSet
 from bikes.models import Bicycle

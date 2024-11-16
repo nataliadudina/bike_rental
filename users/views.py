@@ -1,21 +1,26 @@
+import logging
+
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, status
-from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from stripe import StripeError
 
 from rents.models import Rental
-from rents.paginators import PaymentsPaginator
 from users.filters import PaymentFilterSet
 from users.models import Payment
+from users.paginators import PaymentsPaginator, RentHistoryPaginator
 from users.permissions import IsModerator, IsOwner, IsOwnerOrModerator
-from users.serializers import UserSerializer, BikeRentalHistorySerializer, PaymentSerializer
-from users.services import create_stripe_product, create_stripe_price, create_stripe_checkout_session, \
-    retrieve_stripe_checkout_session
+from users.serializers import (BikeRentalHistorySerializer, PaymentSerializer,
+                               UserSerializer)
+from users.services import (create_stripe_checkout_session,
+                            create_stripe_price, create_stripe_product,
+                            retrieve_stripe_checkout_session)
+
+logger = logging.getLogger(__name__)
 
 
 class UserApiList(generics.ListAPIView):
@@ -34,10 +39,17 @@ class UserRegistrationAPIView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         user = serializer.save(is_active=True)
+
+        # Логирование успешной регистрации
+        logging.info(f"A new user is registered: {user.email}.")
+
         password = self.request.data.get("password")
         if password:
             user.set_password(password)
             user.save()
+
+        # Логирование успешного сохранения пароля
+        logger.info(f"Password is successfully saved for {user.email}.")
 
 
 class UserApiDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -70,6 +82,7 @@ class UserRentHistory(APIView):
 
     permission_classes = [IsAuthenticated]
     serializer_class = BikeRentalHistorySerializer
+    pagination_class = RentHistoryPaginator
 
     def get(self, request):
         history = Rental.objects.filter(renter=self.request.user)
@@ -86,6 +99,7 @@ class CreatePaymentView(APIView):
     def post(self, request):
         rental_id = request.data.get('rental_id')
         if not rental_id:
+            logging.warning("Rental ID is not provided.")
             return Response({'error': 'Rental ID is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         user_email = request.user.email
@@ -95,13 +109,16 @@ class CreatePaymentView(APIView):
             rental = get_object_or_404(Rental, id=rental_id)
             user = rental.renter
             if request.user != user:
+                logging.warning(f"{request.user} is not authorized to return bike {rental.rented_bike.pk}.")
                 return Response({"error": "Not authorized to return this bike."},
                                 status=status.HTTP_403_FORBIDDEN, )
 
             if rental.status != 'pending':
+                logging.warning(f"Rental status is invalid: {rental.status}.")
                 return Response({'error': 'Invalid rental status'}, status=status.HTTP_400_BAD_REQUEST)
 
             if rental.rental_cost <= 0:
+                logging.warning(f"Rental cost is invalid: {rental.rental_cost}.")
                 return Response({'error': 'Invalid rental cost'}, status=status.HTTP_400_BAD_REQUEST)
 
             # Создает продукт и цену в Stripe
@@ -122,9 +139,14 @@ class CreatePaymentView(APIView):
                 stripe_product_id=product.id
             )
 
+            # Логирование создания ссылки на оплату
+            logger.info(f"Payment link is created for {rental.pk}.")
+
             # Возвращает ссылку на оплату
             return Response({'payment_url': session.url}, status=status.HTTP_201_CREATED)
+
         except StripeError as e:
+            logging.error(f"An error occurred when creating a payment link: {str(e)}.")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -144,6 +166,7 @@ class PaymentStatusView(APIView):
 
         if not session_id:
             # Возвращаем ошибку, если session_id не предоставлен
+            logging.warning("Session ID is not provided.")
             return Response({'error': 'Session ID is required'}, status=400)
 
         try:
@@ -157,7 +180,7 @@ class PaymentStatusView(APIView):
             if payment:
                 # Сохраняем статус платежа в базе данных
                 payment.status = payment_status
-                print(f"Payment status from Stripe: {payment_status}")
+                logging.info(f"Payment status from Stripe: {payment_status}.")
 
                 # Обновляем статус аренды
                 if payment_status == 'paid':
@@ -167,10 +190,14 @@ class PaymentStatusView(APIView):
 
                 payment.save()
 
+                # Логирование успешной оплаты
+                logger.info(f"Payment has been received for {session_id}.")
+
             # Возвращаем подтверждение об оплате
             return Response({'message': 'Payment is accepted'}, status=status.HTTP_202_ACCEPTED)
         except StripeError as e:
             # Возвращаем ошибку, если произошла ошибка при взаимодействии с Stripe API
+            logging.error(f"Stripe error occurred: {str(e)}.")
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 

@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -13,6 +14,8 @@ from rents.serializers import RentSerializer
 from rents.tasks import get_rental_cost
 from users.permissions import IsModerator
 
+logger = logging.getLogger(__name__)
+
 
 class RentApiView(generics.CreateAPIView):
     """API эндпоинт для создания записей об аренде велосипеда."""
@@ -26,8 +29,10 @@ class RentApiView(generics.CreateAPIView):
 
         try:
             bike = Bicycle.objects.get(id=bike_id)
+
             # Проверка, доступен ли велосипед для аренды
             if bike.is_rented:
+                logging.warning(f"{bike} with bike id {bike_id} is already rented.")
                 raise serializers.ValidationError("Bicycle is not available.")
 
             # Проверка, нет ли у пользователя активной аренды
@@ -35,6 +40,7 @@ class RentApiView(generics.CreateAPIView):
                 status="active"
             )
             if active_rentals.exists():
+                logging.warning(f"{self.request.user} has an active rental.")
                 raise serializers.ValidationError("User already has an active rental.")
 
             serializer.save(rented_bike=bike, renter=self.request.user, status="active")
@@ -43,7 +49,11 @@ class RentApiView(generics.CreateAPIView):
             bike.is_rented = True
             bike.save()
 
+            # Логирование начала аренды
+            logging.info(f"{self.request.user} started rental {bike} with bike id {bike_id}.")
+
         except ObjectDoesNotExist:
+            logging.warning(f"Bicycle with id {bike_id} not found.")
             raise serializers.ValidationError("Bicycle not found.")
 
 
@@ -84,59 +94,51 @@ class ReturnView(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
 
     def partial_update(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()  # Получаем запись об аренде из бд
+        instance = self.get_object()  # Получаем запись об аренде из бд
 
-            # Проверяем наличие велосипеда в аренде
-            if not instance.rented_bike:
-                return Response(
-                    {"detail": "Bike not found."},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
+        # Только пользователь, арендовавший велосипед, может его вернуть
+        if instance.renter != request.user:
+            logging.warning(f"{instance.renter} is not authorized to complete rental # {instance.pk}")
+            return Response(
+                {"error": "Not authorized to return this bike."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
-            # Только пользователь, арендовавший велосипед, может его вернуть
-            if instance.renter != request.user:
-                return Response(
-                    {"error": "Not authorized to return this bike."},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
+        # Проверка, что аренда ещё активна
+        if instance.status != "active":
+            logging.warning(f"Rental {instance.pk} is already completed.")
+            return Response(
+                {"error": "Rental is already completed."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-            # Проверка, что аренда ещё активна
-            if instance.status != "active":
-                return Response(
-                    {"error": "Rental is already completed."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        # Обновление статуса аренды
+        instance.status = "pending"
+        instance.end_time = now()
+        instance.save()
 
-            # Обновление статуса аренды
-            instance.status = "pending"
-            instance.end_time = now()
+        logging.info(f"Rental {instance.pk} is completed and payment is pending.")
+
+        # Фоновая задача расчёта платы за аренду
+        payment_task = get_rental_cost.delay(instance.pk)
+        payment_task.get()
+
+        result = payment_task.result
+
+        if result and result.get('status') == 'success':
+            rental_cost = Decimal(result['rental_cost'])
+            instance.rental_cost = rental_cost
             instance.save()
 
-            # Фоновая задача расчёта платы за аренду
-            payment_task = get_rental_cost.delay(instance.pk)
-            payment_task.get()
+            logging.info(f"Payment for rental {instance.pk} is successfully calculated.")
+        else:
+            raise ValueError(f"Ошибка при расчете стоимости аренды: {result}")
 
-            result = payment_task.result
-
-            if result and result.get('status') == 'success':
-                rental_cost = Decimal(result['rental_cost'])
-                instance.rental_cost = rental_cost
-                instance.save()
-            else:
-                raise ValueError(f"Ошибка при расчете стоимости аренды: {result}")
-
-            # Изменение статуса велосипеда
-            bike_id = instance.rented_bike.id  # Получаем ID велосипеда
-            bike = Bicycle.objects.get(id=bike_id)
-            bike.is_rented = False
-            bike.save()
-            return Response(
-                self.serializer_class(instance).data, status=status.HTTP_200_OK
-            )
-        except Exception as e:
-            print(f"Error occurred during bike return: {str(e)}")
-            return Response(
-                {"error": "An error occurred during bike return"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        # Изменение статуса велосипеда
+        bike_id = instance.rented_bike.id  # Получаем ID велосипеда
+        bike = Bicycle.objects.get(id=bike_id)
+        bike.is_rented = False
+        bike.save()
+        return Response(
+            self.serializer_class(instance).data, status=status.HTTP_200_OK
+        )

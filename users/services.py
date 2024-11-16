@@ -1,8 +1,12 @@
+import logging
+
 import stripe
 
 from config import settings
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+logger = logging.getLogger(__name__)
 
 
 def create_stripe_product(rental):
@@ -11,6 +15,7 @@ def create_stripe_product(rental):
         name=rental,
         type="service"
     )
+    logging.info("Strie Product is created.")
     return product
 
 
@@ -37,9 +42,10 @@ def create_stripe_checkout_session(price_id, user_email):
             cancel_url='http://127.0.0.1:8000/',
             customer_email=user_email,
         )
+        logging.info("Stripe Session is created.")
         return session
     except stripe.error.StripeError as e:
-        print(f"Failed to create session: {e}")
+        logging.error(f"Failed to create session: {e}")
         return None
 
 

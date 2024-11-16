@@ -180,20 +180,44 @@ SPECTACULAR_SETTINGS = {
     'ENABLE_WARNINGS': True,  # Включить предупреждения об отсутствии описаний
 }
 
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "formatters": {
+        "custom_formatter": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        }
+    },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
         },
+        "file_error": {
+            "level": "ERROR",
+            "class": "logging.FileHandler",
+            "filename": os.path.join(BASE_DIR, 'logs', 'error.log'),
+            "formatter": "custom_formatter"
+        },
+        "db_query_file": {
+            "level": "ERROR",
+            "class": "logging.FileHandler",
+            "filename": os.path.join(BASE_DIR, 'logs', 'db_errors.log'),
+        },
     },
     "loggers": {
         "": {
-            "handlers": ["console"],
+            "handlers": ["console", "file_error"],
             "level": "INFO",
+            "propagate": False,
         },
     },
+    "django.db.backends": {  # Изолированный логгер для базы данных
+        "handlers": ["db_query_file"],
+        "level": "WARNING",
+        "propagate": False,
+    }
 }
 
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'

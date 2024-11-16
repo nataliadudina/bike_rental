@@ -20,7 +20,7 @@ class BikeRentalHistorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Rental()
-        fields = ["start_time", "end_time", "status", "rented_bike", "rental_cost"]
+        fields = ["id", "start_time", "end_time", "status", "rented_bike", "rental_cost"]
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
