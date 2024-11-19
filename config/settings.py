@@ -173,7 +173,8 @@ SIMPLE_JWT = {
 # настройки документации
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Bicycle Rental Service',
-    'DESCRIPTION': 'Comprehensive bicycle rental service platform with user management, inventory control, and booking system.',
+    'DESCRIPTION': 'Comprehensive bicycle rental service platform with user management, inventory control, '
+                   'and booking system.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'SERVE_PUBLIC': False,  # Показать детализированные ошибки
@@ -220,8 +221,8 @@ LOGGING = {
     }
 }
 
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
-CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
